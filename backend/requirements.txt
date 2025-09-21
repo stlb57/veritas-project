@@ -1,11 +1,33 @@
-beautifulsoup4==4.13.5
-Flask==3.1.2
-flask_cors==6.0.1
-flask_sqlalchemy==3.1.1
-moviepy==2.2.1
-protobuf==6.32.1
-python-dotenv==1.1.1
-Requests==2.32.5
-torch==2.8.0
-transformers==4.56.1
-yt_dlp==2025.9.5
+# Flask and Server
+Flask==3.0.3
+Flask-Cors==4.0.1
+Flask-SQLAlchemy==3.1.1
+gunicorn==22.0.0
+python-dotenv==1.0.1
+
+# Google Gemini AI
+google-generativeai==0.7.1
+
+# Audio and Spectrogram Analysis
+librosa==0.10.2
+matplotlib==3.9.1
+soundfile==0.12.1
+torchaudio==2.4.0
+
+# Image Analysis
+Pillow==10.4.0
+
+# Video and Hugging Face Models
+moviepy==1.0.3
+transformers==4.42.4
+torch==2.4.0
+opencv-python==4.10.0.84
+yt-dlp==2024.7.25
+
+# Core Dependencies
+beautifulsoup4==4.12.3
+boto3==1.34.144
+numpy==2.0.0
+Requests==2.32.3
+SQLAlchemy==2.0.31
+tqdm==4.66.4
