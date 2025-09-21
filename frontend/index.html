@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Veritas - AI Misinformation Detection</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="background-animation"></div>
+    <header>
+        <nav>
+            <a href="index.html" class="logo-container">
+                <img src="assets/logo.svg" alt="Veritas Logo" class="logo">
+            </a>
+            <ul>
+                <li><a href="index.html" class="active">Home</a></li>
+                <li><a href="dashboard.html">Dashboard</a></li>
+                <li><a href="history.html">History</a></li>
+                <li><a href="about.html">About</a></li>
+                <li><a href="contact.html">Contact</a></li>
+            </ul>
+            <div class="auth-buttons">
+                <button class="btn-secondary">Login</button>
+                <button class="btn-primary">Sign Up</button>
+            </div>
+        </nav>
+    </header>
+
+    <main class="hero-section">
+        <div class="hero-content">
+            <h1 class="veritas-heading">VERITAS</h1>
+            <p class="tagline">"Latin by 'Truth', powered by AI"</p>
+            <p class="description">
+                In an era of digital deception, Veritas stands as your sentinel. We leverage cutting-edge AI to dissect text, audio, and video content, exposing misinformation and authenticating truth with unparalleled precision.
+            </p>
+            <a href="dashboard.html" class="cta-button">Start Free Analysis</a>
+        </div>
+        <div class="stats-container">
+            <div class="stat-card">
+                <h3>Accuracy Rate</h3>
+                <p id="accuracy-rate">91.2%</p>
+            </div>
+            <div class="stat-card">
+                <h3>Content Analysed</h3>
+                <p id="content-analysed">1M+</p>
+            </div>
+        </div>
+    </main>
+
+    <section class="analysis-types">
+        <h2>Choose Your Analysis Type</h2>
+        <div class="type-cards-container">
+            <a href="dashboard.html?type=text" class="type-card">
+                <div class="icon">📄</div>
+                <h3>Text Analysis</h3>
+                <p>Verify articles, messages, and news from URLs or text.</p>
+            </a>
+            <a href="dashboard.html?type=audio" class="type-card">
+                <div class="icon">🎙️</div>
+                <h3>Audio Analysis</h3>
+                <p>Detect AI-generated voices and audio deepfakes.</p>
+            </a>
+            <a href="dashboard.html?type=image" class="type-card">
+                <div class="icon">🖼️</div>
+                <h3>Image Analysis</h3>
+                <p>Scan images for signs of AI generation.</p>
+            </a>
+            <a href="dashboard.html?type=video" class="type-card">
+                <div class="icon">🎥</div>
+                <h3>Video Analysis</h3>
+                <p>Uncover deepfake videos from files or YouTube links.</p>
+            </a>
+        </div>
+    </section>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-links">
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+                <a href="#">FAQ</a>
+            </div>
+            <div class="newsletter">
+                <input type="email" placeholder="Enter your email for updates">
+                <button>Subscribe</button>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/script.js"></script>
+</body>
+</html>

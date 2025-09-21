@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Veritas</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="background-animation"></div>
+    <header>
+        <nav>
+            <a href="index.html" class="logo-container">
+                <img src="assets/logo.svg" alt="Veritas Logo" class="logo">
+            </a>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="dashboard.html" class="active">Dashboard</a></li>
+                <li><a href="history.html">History</a></li>
+                <li><a href="about.html">About</a></li>
+                <li><a href="contact.html">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="dashboard-page">
+        <div class="dashboard-container">
+            <div id="text-analysis" class="analysis-section">
+                <h2>Text Analysis</h2>
+                <p>Enter a URL or paste text to check for fake news.</p>
+                <input type="text" id="text-url-input" placeholder="Enter URL or paste text here...">
+                <div id="text-drop-zone" class="drop-zone">
+                    <p>Or drag & drop a .txt file</p>
+                </div>
+                <button id="analyze-text-btn" class="cta-button">Analyze Text</button>
+            </div>
+
+            <div id="audio-analysis" class="analysis-section">
+                <h2>Audio Deepfake Detection</h2>
+                <p>Upload an audio file to detect synthetic voices.</p>
+                <div id="audio-drop-zone" class="drop-zone">
+                    <p>Drag & drop an audio file (.wav, .mp3)</p>
+                    <input type="file" id="audio-file-input" accept="audio/*" hidden>
+                </div>
+                <button id="analyze-audio-btn" class="cta-button">Analyze Audio</button>
+            </div>
+
+            <div id="image-analysis" class="analysis-section">
+                <h2>Image Deepfake Detection</h2>
+                <p>Upload an image file to detect AI generation.</p>
+                <div id="image-drop-zone" class="drop-zone">
+                    <p>Drag & drop an image file (.png, .jpg, .webp)</p>
+                    <input type="file" id="image-file-input" accept="image/*" hidden>
+                </div>
+                <button id="analyze-image-btn" class="cta-button">Analyze Image</button>
+            </div>
+
+            <div id="video-analysis" class="analysis-section">
+                <h2>Video Deepfake Detection</h2>
+                <p>Enter a YouTube URL or upload a video file.</p>
+                <input type="text" id="video-url-input" placeholder="Enter YouTube URL...">
+                <div id="video-drop-zone" class="drop-zone">
+                    <p>Or drag & drop a video file (.mp4)</p>
+                    <input type="file" id="video-file-input" accept="video/mp4" hidden>
+                </div>
+                <button id="analyze-video-btn" class="cta-button">Analyze Video</button>
+            </div>
+
+            <div id="results-section" class="results-container" style="display: none;">
+                <h2>Analysis Result</h2>
+                <div class="result-summary">
+                    <div class="result-chart">
+                        <canvas id="confidence-chart"></canvas>
+                    </div>
+                    <div class="result-text">
+                        <h3 id="result-decision"></h3>
+                        <p id="result-reason"></p>
+                    </div>
+                </div>
+                 <div id="result-details" class="result-details-box"></div>
+            </div>
+             <div id="loader" class="loader" style="display: none;"></div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-links">
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+                <a href="#">FAQ</a>
+            </div>
+        </div>
+    </footer>
+    <script src="js/script.js"></script>
+</body>
+</html>
