@@ -1,10 +1,8 @@
-
-
 import os
 import cv2
 import shutil
 import json
-from moviepy import VideoFileClip
+from moviepy.editor import VideoFileClip # <-- THIS LINE IS THE FIX
 from transformers import pipeline
 
 from video_analyzer import face_detector, audio_detector, extract_frames, extract_audio, check_face, check_audio
