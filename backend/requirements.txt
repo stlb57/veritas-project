@@ -23,13 +23,14 @@ soundfile==0.12.1
 # Image Analysis
 Pillow==10.4.0
 
-# --- VIDEO STACK WITH COMPATIBILITY FIX ---
+# --- VIDEO STACK WITH FINAL COMPATIBILITY FIX ---
 moviepy==1.0.3
 opencv-python==4.10.0.84
 yt-dlp==2024.7.25
 decorator==4.4.2
 imageio==2.34.1
-# ------------------------------------------
+imageio-ffmpeg==0.4.9
+# ---------------------------------------------
 
 # Core Dependencies
 beautifulsoup4==4.12.3
