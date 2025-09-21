@@ -1,11 +1,8 @@
-
-
 import os
 import cv2
 import shutil
 import json
-from moviepy import VideoFileClip
-from transformers import pipeline
+from moviepy.editor import VideoFileClip # <-- THIS LINE IS THE FIX
 import yt_dlp
 
 try:
@@ -30,20 +27,17 @@ def download_youtube_video(url, output_path="downloaded_video.mp4"):
 def extract_frames(video_path, output_folder="temp_frames", fps=1):
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
-    clip = VideoFileClip(video_path)
-    for i, frame in enumerate(clip.iter_frames(fps=fps)):
-        frame_path = f"{output_folder}/frame_{i}.jpg"
-        cv2.imwrite(frame_path, cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
-    clip.close()
+    with VideoFileClip(video_path) as clip:
+        for i, frame in enumerate(clip.iter_frames(fps=fps)):
+            frame_path = f"{output_folder}/frame_{i}.jpg"
+            cv2.imwrite(frame_path, cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
     return output_folder
 
 def extract_audio(video_path, audio_path="temp_audio.wav"):
-    clip = VideoFileClip(video_path)
-    if clip.audio:
-        clip.audio.write_audiofile(audio_path, logger=None)
-        clip.close()
-        return audio_path
-    clip.close()
+    with VideoFileClip(video_path) as clip:
+        if clip.audio:
+            clip.audio.write_audiofile(audio_path, logger=None)
+            return audio_path
     return None
 
 def check_face(frames_folder):
@@ -83,7 +77,6 @@ def analyze_video_from_url(url):
     face_label, face_conf, face_reason = check_face(frames_folder)
     audio_label, audio_conf, audio_reason = check_audio(audio_path)
 
-    
     shutil.rmtree(frames_folder)
     if audio_path and os.path.exists(audio_path):
         os.remove(audio_path)
