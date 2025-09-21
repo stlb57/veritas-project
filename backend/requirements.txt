@@ -8,26 +8,30 @@ python-dotenv==1.0.1
 # Google Gemini AI
 google-generativeai==0.7.1
 
+# --- COMPATIBLE ML & DATA LIBRARIES ---
+# Using a matched set of torch, torchaudio, transformers, and numpy
+torch==2.3.1
+torchaudio==2.3.1
+transformers==4.41.2
+numpy==1.26.4
+# --------------------------------------
+
 # Audio and Spectrogram Analysis
 librosa==0.10.2
 matplotlib==3.9.1
 soundfile==0.12.1
-torchaudio==2.4.0
 
 # Image Analysis
 Pillow==10.4.0
 
-# Video and Hugging Face Models
+# Video and YouTube
 moviepy==1.0.3
-transformers==4.42.4
-torch==2.4.0
 opencv-python==4.10.0.84
 yt-dlp==2024.7.25
 
 # Core Dependencies
 beautifulsoup4==4.12.3
 boto3==1.34.144
-numpy==2.0.0
 Requests==2.32.3
 SQLAlchemy==2.0.31
 tqdm==4.66.4
