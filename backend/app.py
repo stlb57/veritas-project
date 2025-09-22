@@ -18,7 +18,8 @@ from video_analyzer_local import analyze_video_from_file
 
 # --- App and CORS Configuration ---
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}})
+# --- THIS IS THE FINAL, CORRECTED CORS CONFIGURATION ---
+CORS(app, origins=["https://veritas-project.netlify.app"])
 
 # --- Database Configuration ---
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -43,14 +44,11 @@ class Analysis(db.Model):
             'timestamp': self.timestamp.strftime('%Y-%m-%d %H:%M:%S')
         }
 
-# --- THIS IS THE NEW DATABASE INITIALIZATION COMMAND ---
 @app.cli.command("init-db")
 def init_db_command():
     """Creates the database tables."""
     db.create_all()
     print("Initialized the database.")
-# --- END OF NEW COMMAND ---
-
 
 # --- Uploads Folder Configuration ---
 UPLOAD_FOLDER = 'uploads'
@@ -58,8 +56,8 @@ if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
+# --- API Routes ---
 
-# --- API Routes (Your existing routes go here) ---
 @app.route('/analyze/text', methods=['POST'])
 def handle_text_analysis():
     data = request.json
@@ -77,66 +75,109 @@ def handle_text_analysis():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# ... (Paste all your other @app.route functions here: image, audio, video, history, stats)
-# For brevity, I'm omitting the rest of the routes, but they should remain unchanged.
-
 @app.route('/analyze/image', methods=['POST'])
 def handle_image_analysis():
-    if 'file' not in request.files: return jsonify({"error": "No file part"}), 400
+    if 'file' not in request.files:
+        return jsonify({"error": "No file part"}), 400
     file = request.files['file']
-    if file.filename == '': return jsonify({"error": "No selected file"}), 400
+    if file.filename == '':
+        return jsonify({"error": "No selected file"}), 400
+
     filepath = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
     try:
-        file.save(filepath); result = analyze_image_content(filepath)
+        file.save(filepath)
+        result = analyze_image_content(filepath)
+        
         if 'error' not in result:
-            db.session.add(Analysis(analysis_type='Image', result=result['decision'], confidence=result['confidence'])); db.session.commit()
+            analysis_entry = Analysis(analysis_type='Image', result=result['decision'], confidence=result['confidence'])
+            db.session.add(analysis_entry)
+            db.session.commit()
+            
         return jsonify(result)
-    except Exception as e: return jsonify({"error": str(e)}), 500
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
     finally:
-        if os.path.exists(filepath): os.remove(filepath)
+        if os.path.exists(filepath):
+            os.remove(filepath)
 
 @app.route('/analyze/audio', methods=['POST'])
 def handle_audio_analysis():
-    if 'file' not in request.files: return jsonify({"error": "No file part"}), 400
+    if 'file' not in request.files:
+        return jsonify({"error": "No file part"}), 400
     file = request.files['file']
-    if file.filename == '': return jsonify({"error": "No selected file"}), 400
+    if file.filename == '':
+        return jsonify({"error": "No selected file"}), 400
+
     filepath = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
     try:
-        file.save(filepath); result = analyze_audio_content(filepath)
+        file.save(filepath)
+        result = analyze_audio_content(filepath)
+        
         if 'error' not in result:
-            db.session.add(Analysis(analysis_type='Audio', result=result['decision'], confidence=result['confidence'])); db.session.commit()
+            analysis_entry = Analysis(analysis_type='Audio', result=result['decision'], confidence=result['confidence'])
+            db.session.add(analysis_entry)
+            db.session.commit()
+
         return jsonify(result)
-    except Exception as e: return jsonify({"error": str(e)}), 500
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
     finally:
-        if os.path.exists(filepath): os.remove(filepath)
+        if os.path.exists(filepath):
+            os.remove(filepath)
 
 @app.route('/analyze/video-url', methods=['POST'])
 def handle_video_url_analysis():
-    data = request.json; url = data.get('url')
-    if not url: return jsonify({"error": "No URL provided"}), 400
+    data = request.json
+    url = data.get('url')
+    if not url:
+        return jsonify({"error": "No URL provided"}), 400
+
     try:
         result = analyze_video_from_url(url)
         if 'error' not in result:
-            db.session.add(Analysis(analysis_type='Video (URL)', result=result['decision'], confidence=result['overall_confidence'])); db.session.commit()
+            analysis_entry = Analysis(
+                analysis_type='Video (URL)',
+                result=result['decision'],
+                confidence=result['overall_confidence']
+            )
+            db.session.add(analysis_entry)
+            db.session.commit()
         return jsonify(result)
-    except Exception as e: return jsonify({"error": str(e)}), 500
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/analyze/video-file', methods=['POST'])
 def handle_video_file_analysis():
-    if 'file' not in request.files: return jsonify({"error": "No file part"}), 400
+    if 'file' not in request.files:
+        return jsonify({"error": "No file part"}), 400
     file = request.files['file']
-    if file.filename == '': return jsonify({"error": "No selected file"}), 400
+    if file.filename == '':
+        return jsonify({"error": "No selected file"}), 400
+
     filepath = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
     try:
-        file.save(filepath); result = analyze_video_from_file(filepath)
+        file.save(filepath)
+        result = analyze_video_from_file(filepath)
+        
         if 'error' not in result:
-            db.session.add(Analysis(analysis_type='Video (File)', result=result['decision'], confidence=result['overall_confidence'])); db.session.commit()
+            analysis_entry = Analysis(
+                analysis_type='Video (File)',
+                result=result['decision'],
+                confidence=result['overall_confidence']
+            )
+            db.session.add(analysis_entry)
+            db.session.commit()
+
         return jsonify(result)
-    except Exception as e: return jsonify({"error": str(e)}), 500
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
     finally:
-        if os.path.exists(filepath): os.remove(filepath)
-        if os.path.exists('temp_frames'): shutil.rmtree('temp_frames')
-        if os.path.exists('temp_audio.wav'): os.remove('temp_audio.wav')
+        if os.path.exists(filepath):
+            os.remove(filepath)
+        if os.path.exists('temp_frames'):
+            shutil.rmtree('temp_frames')
+        if os.path.exists('temp_audio.wav'):
+            os.remove('temp_audio.wav')
 
 @app.route('/history', methods=['GET'])
 def get_history():
@@ -147,11 +188,16 @@ def get_history():
 def get_stats():
     total_analyses = Analysis.query.count()
     real_analyses = Analysis.query.filter(Analysis.result.ilike('%real%')).all()
-    avg_confidence = 0.94 if not real_analyses else sum(a.confidence for a in real_analyses) / len(real_analyses)
-    return jsonify({"totalAnalyses": total_analyses, "accuracyRate": avg_confidence})
-# --- End of routes ---
+    avg_confidence = 0.94 # Default value
+    if real_analyses:
+        avg_confidence = sum(a.confidence for a in real_analyses) / len(real_analyses)
+    
+    return jsonify({
+        "totalAnalyses": total_analyses,
+        "accuracyRate": avg_confidence
+    })
 
-# --- Run the App (This part is ignored by Gunicorn on Render) ---
+# --- Run the App ---
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
