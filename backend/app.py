@@ -15,24 +15,30 @@ from audio_analyzer import analyze_audio_content
 from video_analyzer import analyze_video_from_url
 from video_analyzer_local import analyze_video_from_file
 
-# --- App and CORS Configuration ---
+# --- App Initialization ---
 app = Flask(__name__)
-# This permissive CORS setup is fine for development and should resolve access issues.
-CORS(app)
 
-# --- Database Configuration ---
-basedir = os.path.abspath(os.path.dirname(__file__))
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'veritas.db')
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db = SQLAlchemy(app)
+# --- 🎯 THE FIX: Explicit CORS Configuration ---
+# This is the most reliable configuration to solve the issue.
+# It specifically tells the server to allow requests from your Netlify frontend.
+CORS(app,
+     origins=["https://veritas-project.netlify.app", "http://localhost:3000", "http://127.0.0.1:5500"],
+     methods=["GET", "POST", "OPTIONS"],
+     supports_credentials=True)
 
-# --- Upload Folder Configuration ---
+# --- 📁 Upload Folder Configuration ---
 UPLOAD_FOLDER = 'uploads'
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-# --- Database Model ---
+# --- 🗄️ Database Configuration ---
+basedir = os.path.abspath(os.path.dirname(__file__))
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'veritas.db')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
+
+# --- 📝 Database Model ---
 class Analysis(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     analysis_type = db.Column(db.String(50), nullable=False)
@@ -49,7 +55,7 @@ class Analysis(db.Model):
             'timestamp': self.timestamp.strftime('%Y-%m-%d %H:%M:%S')
         }
 
-# --- API Endpoints ---
+# --- 🌐 API Endpoints ---
 
 @app.route('/analyze/text', methods=['POST'])
 def handle_text_analysis():
@@ -66,7 +72,6 @@ def handle_text_analysis():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# --- ✨ NEW: Image Analysis Route ✨ ---
 @app.route('/analyze/image', methods=['POST'])
 def handle_image_analysis():
     if 'file' not in request.files:
@@ -74,14 +79,11 @@ def handle_image_analysis():
     file = request.files['file']
     if file.filename == '':
         return jsonify({"error": "No selected file"}), 400
-
     filepath = ""
     try:
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
         file.save(filepath)
         result = analyze_image_content(filepath)
-
-        # Assuming 'result' is a dict with 'decision' and 'confidence'
         analysis_entry = Analysis(analysis_type='Image', result=result['decision'], confidence=result['confidence'])
         db.session.add(analysis_entry)
         db.session.commit()
@@ -157,7 +159,6 @@ def handle_video_file_analysis():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     finally:
-        # Clean up all temporary files
         if os.path.exists(filepath):
             os.remove(filepath)
         if os.path.exists('temp_frames'):
@@ -183,16 +184,15 @@ def get_stats():
         "accuracyRate": avg_confidence
     })
 
-# --- Database CLI Command ---
+# --- 🛠️ Database CLI Command ---
 @app.cli.command("init-db")
 def init_db_command():
     """Initializes the database."""
     db.create_all()
     print("Initialized the database.")
 
-# --- Application Runner ---
+# --- 🚀 Application Runner ---
 if __name__ == '__main__':
     with app.app_context():
-        # This ensures the database tables are created when the app starts.
         db.create_all()
     app.run(debug=True, port=5000)
