@@ -17,8 +17,8 @@ from video_analyzer_local import analyze_video_from_file
 
 # --- App and CORS Configuration ---
 app = Flask(__name__)
-# This line is the fix: specifying the frontend URL to allow requests
-CORS(app, origins=["https://veritas-project.netlify.app"])
+# This permissive CORS setup is fine for development and should resolve access issues.
+CORS(app)
 
 # --- Database Configuration ---
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -26,7 +26,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 've
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
-# --- Uploads Folder Configuration ---
+# --- Upload Folder Configuration ---
 UPLOAD_FOLDER = 'uploads'
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
@@ -49,7 +49,7 @@ class Analysis(db.Model):
             'timestamp': self.timestamp.strftime('%Y-%m-%d %H:%M:%S')
         }
 
-# --- API Routes ---
+# --- API Endpoints ---
 
 @app.route('/analyze/text', methods=['POST'])
 def handle_text_analysis():
@@ -57,17 +57,16 @@ def handle_text_analysis():
     content = data.get('text') or data.get('url')
     if not content:
         return jsonify({"error": "No text or URL provided"}), 400
-
     try:
         result = analyze_text_content(content)
-        if 'error' not in result:
-            analysis_entry = Analysis(analysis_type='Text', result=result['decision'], confidence=result['confidence'])
-            db.session.add(analysis_entry)
-            db.session.commit()
+        analysis_entry = Analysis(analysis_type='Text', result=result['decision'], confidence=result['confidence'])
+        db.session.add(analysis_entry)
+        db.session.commit()
         return jsonify(result)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+# --- ✨ NEW: Image Analysis Route ✨ ---
 @app.route('/analyze/image', methods=['POST'])
 def handle_image_analysis():
     if 'file' not in request.files:
@@ -76,22 +75,21 @@ def handle_image_analysis():
     if file.filename == '':
         return jsonify({"error": "No selected file"}), 400
 
-    filepath = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+    filepath = ""
     try:
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
         file.save(filepath)
         result = analyze_image_content(filepath)
-        
-        if 'error' not in result:
-            analysis_entry = Analysis(analysis_type='Image', result=result['decision'], confidence=result['confidence'])
-            db.session.add(analysis_entry)
-            db.session.commit()
-            
+
+        # Assuming 'result' is a dict with 'decision' and 'confidence'
+        analysis_entry = Analysis(analysis_type='Image', result=result['decision'], confidence=result['confidence'])
+        db.session.add(analysis_entry)
+        db.session.commit()
         return jsonify(result)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     finally:
-        # Ensure the temporary file is always removed
-        if os.path.exists(filepath):
+        if filepath and os.path.exists(filepath):
             os.remove(filepath)
 
 @app.route('/analyze/audio', methods=['POST'])
@@ -101,22 +99,19 @@ def handle_audio_analysis():
     file = request.files['file']
     if file.filename == '':
         return jsonify({"error": "No selected file"}), 400
-
-    filepath = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+    filepath = ""
     try:
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
         file.save(filepath)
         result = analyze_audio_content(filepath)
-        
-        if 'error' not in result:
-            analysis_entry = Analysis(analysis_type='Audio', result=result['decision'], confidence=result['confidence'])
-            db.session.add(analysis_entry)
-            db.session.commit()
-
+        analysis_entry = Analysis(analysis_type='Audio', result=result['decision'], confidence=result['confidence'])
+        db.session.add(analysis_entry)
+        db.session.commit()
         return jsonify(result)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     finally:
-        if os.path.exists(filepath):
+        if filepath and os.path.exists(filepath):
             os.remove(filepath)
 
 @app.route('/analyze/video-url', methods=['POST'])
@@ -125,18 +120,17 @@ def handle_video_url_analysis():
     url = data.get('url')
     if not url:
         return jsonify({"error": "No URL provided"}), 400
-
     try:
         result = analyze_video_from_url(url)
-        if 'error' not in result:
-            analysis_entry = Analysis(
-                analysis_type='Video (URL)',
-                result=result['decision'],
-                confidence=result['overall_confidence']
-            )
-            db.session.add(analysis_entry)
-            db.session.commit()
-        return jsonify(result)
+        result_dict = json.loads(result) if isinstance(result, str) else result
+        analysis_entry = Analysis(
+            analysis_type='Video (URL)',
+            result=result_dict['decision'],
+            confidence=result_dict['overall_confidence']
+        )
+        db.session.add(analysis_entry)
+        db.session.commit()
+        return jsonify(result_dict)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -147,26 +141,23 @@ def handle_video_file_analysis():
     file = request.files['file']
     if file.filename == '':
         return jsonify({"error": "No selected file"}), 400
-
     filepath = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+    file.save(filepath)
     try:
-        file.save(filepath)
         result = analyze_video_from_file(filepath)
-        
-        if 'error' not in result:
-            analysis_entry = Analysis(
-                analysis_type='Video (File)',
-                result=result['decision'],
-                confidence=result['overall_confidence']
-            )
-            db.session.add(analysis_entry)
-            db.session.commit()
-
-        return jsonify(result)
+        result_dict = json.loads(result) if isinstance(result, str) else result
+        analysis_entry = Analysis(
+            analysis_type='Video (File)',
+            result=result_dict['decision'],
+            confidence=result_dict['overall_confidence']
+        )
+        db.session.add(analysis_entry)
+        db.session.commit()
+        return jsonify(result_dict)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     finally:
-        # Clean up all temporary files created by video analysis
+        # Clean up all temporary files
         if os.path.exists(filepath):
             os.remove(filepath)
         if os.path.exists('temp_frames'):
@@ -183,17 +174,25 @@ def get_history():
 def get_stats():
     total_analyses = Analysis.query.count()
     real_analyses = Analysis.query.filter(Analysis.result.ilike('%real%')).all()
-    avg_confidence = 0.94 # Default value
     if real_analyses:
         avg_confidence = sum(a.confidence for a in real_analyses) / len(real_analyses)
-    
+    else:
+        avg_confidence = 0.94
     return jsonify({
         "totalAnalyses": total_analyses,
         "accuracyRate": avg_confidence
     })
 
-# --- Run the App ---
+# --- Database CLI Command ---
+@app.cli.command("init-db")
+def init_db_command():
+    """Initializes the database."""
+    db.create_all()
+    print("Initialized the database.")
+
+# --- Application Runner ---
 if __name__ == '__main__':
     with app.app_context():
+        # This ensures the database tables are created when the app starts.
         db.create_all()
     app.run(debug=True, port=5000)
