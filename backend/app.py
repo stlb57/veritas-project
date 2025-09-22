@@ -1,6 +1,7 @@
 import os
 import shutil
 import json
+import re
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
@@ -17,8 +18,8 @@ from video_analyzer_local import analyze_video_from_file
 
 # --- App and CORS Configuration ---
 app = Flask(__name__)
-# --- THIS IS THE CORRECTED LINE ---
-CORS(app, origins="https://veritas-project.netlify.app", supports_credentials=True)
+# --- THIS IS THE CORRECTED, MORE ROBUST CORS CONFIGURATION ---
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 # --- Database Configuration ---
 basedir = os.path.abspath(os.path.dirname(__file__))
