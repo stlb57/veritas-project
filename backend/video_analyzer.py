@@ -3,7 +3,7 @@ import cv2
 import shutil
 import json
 from moviepy.editor import VideoFileClip
-from transformers import pipeline # <-- THIS LINE WAS ADDED
+from transformers import pipeline # <-- THIS LINE WAS MISSING
 import yt_dlp
 
 try:
