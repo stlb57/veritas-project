@@ -4,18 +4,17 @@ document.addEventListener("DOMContentLoaded", () => {
     const API_BASE_URL = "https://veritas-project.onrender.com";
     let confidenceChart = null;
 
-    // Page-specific logic
+    // --- THIS IS THE CORRECTED PAGE DETECTION LOGIC ---
     const path = window.location.pathname;
-
-    if (path.endsWith("index.html") || path === "/" || path.endsWith("/")) {
+    if (path.includes("dashboard")) {
+        initDashboardPage();
+    } else if (path.includes("history")) {
+        initHistoryPage();
+    } else {
+        // Assumes index.html is the default/fallback page
         initHomePage();
     }
-    if (path.endsWith("dashboard.html")) {
-        initDashboardPage();
-    }
-    if (path.endsWith("history.html")) {
-        initHistoryPage();
-    }
+    // --- END OF CORRECTION ---
 
     // --- Home Page ---
     function initHomePage() {
