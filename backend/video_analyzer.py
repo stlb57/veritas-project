@@ -3,18 +3,31 @@ import cv2
 import shutil
 import json
 from moviepy.editor import VideoFileClip
-from transformers import pipeline # <-- THIS LINE WAS MISSING
+from transformers import pipeline
 import yt_dlp
 
-try:
-    print("Loading video analysis models...")
-    face_detector = pipeline("image-classification", model="prithivMLmods/Deep-Fake-Detector-v2-Model")
-    audio_detector = pipeline("audio-classification", model="MelodyMachine/Deepfake-audio-detection-V2")
-    print("Video analysis models loaded successfully.")
-except Exception as e:
-    print(f"Error loading video models: {e}")
-    face_detector = None
-    audio_detector = None
+# --- LAZY LOADING IMPLEMENTATION ---
+# Initialize models as None. They will be loaded on first use.
+face_detector = None
+audio_detector = None
+models_loaded = False
+
+def load_models():
+    """Loads the ML models only when needed."""
+    global face_detector, audio_detector, models_loaded
+    if not models_loaded:
+        try:
+            print("Loading video analysis models for the first time...")
+            face_detector = pipeline("image-classification", model="prithivMLmods/Deep-Fake-Detector-v2-Model")
+            audio_detector = pipeline("audio-classification", model="MelodyMachine/Deepfake-audio-detection-V2")
+            models_loaded = True
+            print("Video analysis models loaded successfully.")
+        except Exception as e:
+            print(f"Error loading video models: {e}")
+            # Ensure they remain None if loading fails
+            face_detector = None
+            audio_detector = None
+    # If already loaded, this function does nothing.
 
 def download_youtube_video(url, output_path="downloaded_video.mp4"):
     if "shorts/" in url:
@@ -42,6 +55,10 @@ def extract_audio(video_path, audio_path="temp_audio.wav"):
     return None
 
 def check_face(frames_folder):
+    load_models() # Ensure models are loaded before use
+    if not face_detector:
+        return "error", 0.0, "Face detection model is not available."
+
     scores, labels = [], []
     image_files = [f for f in os.listdir(frames_folder) if f.endswith(('.jpg', '.png'))]
     if not image_files:
@@ -60,6 +77,10 @@ def check_face(frames_folder):
     return majority_label, avg_score, reason
 
 def check_audio(audio_path):
+    load_models() # Ensure models are loaded before use
+    if not audio_detector:
+        return "error", 0.0, "Audio detection model is not available."
+
     if not audio_path or not os.path.exists(audio_path):
         return "neutral", 0.0, "No audio track found in the video."
     preds = audio_detector(audio_path)
@@ -68,10 +89,8 @@ def check_audio(audio_path):
     return best['label'], best['score'], reason
 
 def analyze_video_from_url(url):
-    if not face_detector or not audio_detector:
-        raise RuntimeError("Video analysis models are not available.")
-
     video_path = download_youtube_video(url)
+    # The functions below will trigger model loading if needed
     frames_folder = extract_frames(video_path)
     audio_path = extract_audio(video_path)
 
@@ -91,6 +110,7 @@ def analyze_video_from_url(url):
     if face_is_real and audio_is_real:
         decision = "Real"
         final_reason = "Both visual and audio components appear authentic."
+    # ... (rest of the logic is the same)
     elif not face_is_real and audio_is_real:
         decision = "Fake"
         final_reason = "Altered visual content (deepfake face) detected, but audio is authentic."
