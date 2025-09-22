@@ -1,7 +1,6 @@
 import os
 import shutil
 import json
-import re
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
@@ -18,7 +17,7 @@ from video_analyzer_local import analyze_video_from_file
 
 # --- App and CORS Configuration ---
 app = Flask(__name__)
-# --- THIS IS THE FINAL, CORRECTED CORS CONFIGURATION ---
+# This line is the fix: specifying the frontend URL to allow requests
 CORS(app, origins=["https://veritas-project.netlify.app"])
 
 # --- Database Configuration ---
@@ -26,6 +25,12 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'veritas.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
+
+# --- Uploads Folder Configuration ---
+UPLOAD_FOLDER = 'uploads'
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 # --- Database Model ---
 class Analysis(db.Model):
@@ -43,18 +48,6 @@ class Analysis(db.Model):
             'confidence': self.confidence,
             'timestamp': self.timestamp.strftime('%Y-%m-%d %H:%M:%S')
         }
-
-@app.cli.command("init-db")
-def init_db_command():
-    """Creates the database tables."""
-    db.create_all()
-    print("Initialized the database.")
-
-# --- Uploads Folder Configuration ---
-UPLOAD_FOLDER = 'uploads'
-if not os.path.exists(UPLOAD_FOLDER):
-    os.makedirs(UPLOAD_FOLDER)
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 # --- API Routes ---
 
@@ -97,6 +90,7 @@ def handle_image_analysis():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     finally:
+        # Ensure the temporary file is always removed
         if os.path.exists(filepath):
             os.remove(filepath)
 
@@ -172,6 +166,7 @@ def handle_video_file_analysis():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     finally:
+        # Clean up all temporary files created by video analysis
         if os.path.exists(filepath):
             os.remove(filepath)
         if os.path.exists('temp_frames'):
