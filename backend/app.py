@@ -17,7 +17,8 @@ from video_analyzer_local import analyze_video_from_file
 
 # --- App and CORS Configuration ---
 app = Flask(__name__)
-CORS(app)
+# --- THIS IS THE CORRECTED LINE ---
+CORS(app, origins="https://veritas-project.netlify.app", supports_credentials=True)
 
 # --- Database Configuration ---
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -67,7 +68,6 @@ def handle_text_analysis():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# --- THIS IS THE NEWLY ADDED ROUTE FOR IMAGE ANALYSIS ---
 @app.route('/analyze/image', methods=['POST'])
 def handle_image_analysis():
     if 'file' not in request.files:
@@ -90,7 +90,6 @@ def handle_image_analysis():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     finally:
-        # Ensure the temporary file is always removed
         if os.path.exists(filepath):
             os.remove(filepath)
 
@@ -166,7 +165,6 @@ def handle_video_file_analysis():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     finally:
-        # Clean up all temporary files created by video analysis
         if os.path.exists(filepath):
             os.remove(filepath)
         if os.path.exists('temp_frames'):
