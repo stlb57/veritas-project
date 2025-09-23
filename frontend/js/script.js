@@ -1,5 +1,3 @@
-// frontend/js/script.js
-
 document.addEventListener("DOMContentLoaded", () => {
     const API_BASE_URL = "https://veritas-project.onrender.com";
     let confidenceChart = null;
@@ -85,7 +83,7 @@ document.addEventListener("DOMContentLoaded", () => {
         setupVideoAnalysis();
     }
     
-     function setupDragAndDrop(dropZoneId, fileInputId, onFileAdded) {
+      function setupDragAndDrop(dropZoneId, fileInputId, onFileAdded) {
         const dropZone = document.getElementById(dropZoneId);
         if (!dropZone) return;
         
@@ -120,21 +118,55 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    // --- ✨ THIS IS THE ONLY FUNCTION THAT WAS CHANGED ✨ ---
     function setupTextAnalysis() {
         const analyzeBtn = document.getElementById('analyze-text-btn');
         if (!analyzeBtn) return;
 
         const textInput = document.getElementById('text-url-input');
+        const dropZone = document.getElementById('text-drop-zone');
         let textFileContent = null;
 
+        // This function call correctly handles DRAG AND DROP. It is unchanged.
         setupDragAndDrop('text-drop-zone', null, (file) => {
-             const reader = new FileReader();
-             reader.onload = (e) => {
-                 textFileContent = e.target.result;
-                 document.querySelector('#text-drop-zone p').textContent = `File selected: ${file.name}`;
-             };
-             reader.readAsText(file);
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                textFileContent = e.target.result;
+                const dropZoneText = dropZone.querySelector('p');
+                if (dropZoneText) dropZoneText.textContent = `File selected: ${file.name}`;
+            };
+            reader.readAsText(file);
         });
+        
+        // --- START OF FIX ---
+        // We create a hidden file input just for this text section.
+        const textFileInput = document.createElement('input');
+        textFileInput.type = 'file';
+        textFileInput.accept = '.txt,.md,.rtf'; // Accept common text files
+        textFileInput.style.display = 'none';
+
+        // When a file is selected using the file dialog, read its content.
+        textFileInput.addEventListener('change', () => {
+            if (textFileInput.files.length > 0) {
+                const file = textFileInput.files[0];
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    textFileContent = e.target.result;
+                    const dropZoneText = dropZone.querySelector('p');
+                    if (dropZoneText) dropZoneText.textContent = `File selected: ${file.name}`;
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        // If the drop zone exists, add a click listener that triggers our hidden file input.
+        // This is the part that was missing.
+        if (dropZone) {
+            dropZone.addEventListener('click', () => {
+                textFileInput.click();
+            });
+        }
+        // --- END OF FIX ---
         
         analyzeBtn.addEventListener('click', () => {
             const content = textInput.value || textFileContent;
@@ -157,7 +189,7 @@ document.addEventListener("DOMContentLoaded", () => {
         
         const fileInput = document.getElementById('audio-file-input');
         setupDragAndDrop('audio-drop-zone', 'audio-file-input', (file) => {
-             document.querySelector('#audio-drop-zone p').textContent = `File selected: ${file.name}`;
+            document.querySelector('#audio-drop-zone p').textContent = `File selected: ${file.name}`;
         });
         
         analyzeBtn.addEventListener('click', () => {
@@ -180,7 +212,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const fileInput = document.getElementById('image-file-input');
         setupDragAndDrop('image-drop-zone', 'image-file-input', (file) => {
-             document.querySelector('#image-drop-zone p').textContent = `File selected: ${file.name}`;
+            document.querySelector('#image-drop-zone p').textContent = `File selected: ${file.name}`;
         });
         
         analyzeBtn.addEventListener('click', () => {
@@ -206,7 +238,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const fileInput = document.getElementById('video-file-input');
 
         setupDragAndDrop('video-drop-zone', 'video-file-input', (file) => {
-             document.querySelector('#video-drop-zone p').textContent = `File selected: ${file.name}`;
+            document.querySelector('#video-drop-zone p').textContent = `File selected: ${file.name}`;
         });
 
         analyzeBtn.addEventListener('click', () => {
@@ -348,8 +380,8 @@ document.addEventListener("DOMContentLoaded", () => {
             tableBody.innerHTML = '';
             
             if (historyData.length === 0) {
-                 tableBody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No history found.</td></tr>';
-                 return;
+                  tableBody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No history found.</td></tr>';
+                  return;
             }
 
             historyData.forEach(item => {
